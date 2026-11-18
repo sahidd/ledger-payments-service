@@ -1,0 +1,27 @@
+app:
+  outbox:
+    poll-delay-ms: 200
+  risk:
+    unusual-amount: 1000.00
+    velocity-limit: 2
+    velocity-window-seconds: 600
+    average-multiplier: 5
+    minimum-sample: 3
+
+management:
+  tracing:
+    sampling:
+      probability: 0
+  otlp:
+    tracing:
+      export:
+        enabled: false
+      endpoint: http://127.0.0.1:9/v1/traces
+
+logging:
+  structured:
+    format:
+      console: logstash
+  level:
+    root: WARN
+    com.sahidanwar: INFO
