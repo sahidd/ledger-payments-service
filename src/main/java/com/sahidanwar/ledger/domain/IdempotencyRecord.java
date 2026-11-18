@@ -3,17 +3,29 @@ package com.sahidanwar.ledger.domain;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import org.springframework.data.domain.Persistable;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "idempotency_records")
-public class IdempotencyRecord {
+public class IdempotencyRecord implements Persistable<String> {
 
     @Id
     @Column(name = "idempotency_key", length = 120)
     private String idempotencyKey;
+
+    /**
+     * The key is assigned in the constructor, so a missing version would make {@code save}
+     * call {@code merge}. Merge of a row that does not exist yet is reported as an
+     * optimistic-lock conflict (HTTP 409) instead of an insert.
+     */
+    @Transient
+    private boolean newRecord = true;
 
     @Column(name = "request_hash", nullable = false, length = 64)
     private String requestHash;
@@ -39,6 +51,22 @@ public class IdempotencyRecord {
     public void complete(int status, String body) {
         this.responseStatus = status;
         this.responseBody = body;
+    }
+
+    @Override
+    public String getId() {
+        return idempotencyKey;
+    }
+
+    @Override
+    public boolean isNew() {
+        return newRecord;
+    }
+
+    @PostLoad
+    @PostPersist
+    void markNotNew() {
+        newRecord = false;
     }
 
     public String getIdempotencyKey() {

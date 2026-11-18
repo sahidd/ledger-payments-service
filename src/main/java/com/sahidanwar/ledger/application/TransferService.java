@@ -118,8 +118,8 @@ public class TransferService {
     }
 
     private HttpResult executeNew(String key, String hash, TransferRequest request) {
-        IdempotencyRecord record = new IdempotencyRecord(key, hash, Instant.now());
-        idempotencyRepository.saveAndFlush(record);
+        IdempotencyRecord record = idempotencyRepository.saveAndFlush(
+                new IdempotencyRecord(key, hash, Instant.now()));
         try {
             HttpResult result = post(key, request);
             record.complete(result.status(), objectMapper.writeValueAsString(result.body()));
